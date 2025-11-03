@@ -6,7 +6,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Production builds
-dist/
 !dist/spa/
 !dist/server/
 
@@ -18,7 +17,6 @@ dist/
 
 # Database
 *.sqlite3
-!bd-ticketpro.db
 
 # Logs
 logs
@@ -90,7 +88,6 @@ out
 public
 
 # Vite build output
-dist/
 
 # Storybook build outputs
 .out
@@ -115,5 +112,3 @@ temp/
 # OS generated files
 
 # BD TicketPro specific
-.env
-bd-ticketpro.db
