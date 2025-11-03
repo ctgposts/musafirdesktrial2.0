@@ -19,13 +19,13 @@ const router = Router();
 router.use(authenticate);
 
 // Add middleware to log all requests to settings routes
-router.use((req, res, next) => {
-  console.log(`Settings route accessed: ${req.method} ${req.path}`);
+router.use((_req, _res, next) => {
+  console.log(`Settings route accessed: ${_req.method} ${_req.path}`);
   next();
 });
 
 // Test endpoint to verify routing works
-router.get("/test", (req: Request, res: Response) => {
+router.get("/test", (_req: Request, res: Response) => {
   console.log("Test endpoint called successfully!");
   res.json({
     success: true,
@@ -84,11 +84,12 @@ router.get("/", async (req: Request, res: Response) => {
       message: "System settings retrieved successfully",
       data: { settings: filteredSettings },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Get settings error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -128,11 +129,12 @@ router.get("/:key", async (req: Request, res: Response) => {
       message: "Setting retrieved successfully",
       data: { key, value },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Get setting error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -189,6 +191,7 @@ router.put(
       res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
@@ -262,6 +265,7 @@ router.put(
       res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
@@ -325,6 +329,7 @@ router.get(
       res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
@@ -361,16 +366,15 @@ router.get(
       res.status(500).json({
         success: false,
         message: "Internal server error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
 );
 
 // Get system information (authenticated users)
-router.get(
-  "/system-info",
-  async (req: Request, res: Response) => {
-    console.log("System info route called");
+router.get("/system-info", async (_req: Request, res: Response) => {
+  console.log("System info route called");
     try {
       console.log("Building system info...");
 
@@ -400,17 +404,14 @@ router.get(
       res.status(500).json({
         success: false,
         message: "Internal server error",
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
 );
 
 // Create backup (admin only)
-router.post(
-  "/backup",
-  requirePermission("system_settings"),
-  async (req: Request, res: Response) => {
+router.post("/backup", requirePermission("system_settings"), async (req: Request, res: Response) => {
     try {
       // Create backup directory if it doesn't exist
       const backupDir = path.join(process.cwd(), "backups");
@@ -458,6 +459,7 @@ router.post(
       res.status(500).json({
         success: false,
         message: "Failed to create backup",
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },

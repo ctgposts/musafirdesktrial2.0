@@ -38,8 +38,9 @@ export function createServer() {
 
   // Add request logging middleware (only in development)
   if (process.env.NODE_ENV !== "production") {
-    app.use((req, res, next) => {
-      console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    app.use((_req, _res, next) => {
+      // Type assertion to fix TypeScript error
+      console.log(`${new Date().toISOString()} - ${(_req as any).method} ${(_req as any).path}`);
       next();
     });
   }
@@ -66,13 +67,13 @@ export function createServer() {
   app.use(
     (
       err: any,
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction,
+      _req: express.Request,
+      _res: express.Response,
+      _next: express.NextFunction,
     ) => {
       console.error("Global error handler:", err);
 
-      res.status(err.status || 500).json({
+      _res.status(err.status || 500).json({
         success: false,
         message: err.message || "Internal server error",
         ...(process.env.NODE_ENV === "development" && { stack: err.stack }),

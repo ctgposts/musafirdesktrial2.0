@@ -106,7 +106,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
 });
 
 // Logout endpoint (client-side mainly, but can log activity)
-router.post("/logout", async (req: Request, res: Response) => {
+router.post("/logout", async (_req: Request, res: Response) => {
   try {
     // In a stateless JWT system, logout is mainly client-side
     // But we can log the activity if user info is available

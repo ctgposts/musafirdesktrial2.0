@@ -94,7 +94,7 @@ export class UserRepository {
   static delete(id: string): boolean {
     const stmt = db.prepare("DELETE FROM users WHERE id = ?");
     const result = stmt.run(id);
-    return result.changes > 0;
+    return 'changes' in result && result.changes > 0;
   }
 }
 
@@ -238,6 +238,12 @@ export class TicketBatchRepository {
       total_tickets: number;
       available_tickets: number;
     }>;
+  }
+
+  static delete(id: string): boolean {
+    const stmt = db.prepare("DELETE FROM ticket_batches WHERE id = ?");
+    const result = stmt.run(id);
+    return 'changes' in result && result.changes > 0;
   }
 }
 
@@ -384,7 +390,7 @@ export class TicketRepository {
       stmt.run(status, now, id);
     }
 
-    return stmt.changes > 0;
+    return (stmt as any).changes > 0;
   }
 
   static getDashboardStats() {
@@ -611,7 +617,7 @@ export class BookingRepository {
       stmt.run(status, now, id);
     }
 
-    return stmt.changes > 0;
+    return (stmt as any).changes > 0;
   }
 }
 

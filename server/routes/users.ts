@@ -1,4 +1,17 @@
 import { Router, Request, Response } from "express";
+
+// Extend the Express Request interface to include user property
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        name: string;
+        role: string;
+      };
+    }
+  }
+}
 import { UserRepository, ActivityLogRepository } from "../database/models";
 import { authenticate, requirePermission } from "../middleware/auth";
 import { z } from "zod";
@@ -46,7 +59,7 @@ const updatePasswordSchema = z
 router.get(
   "/",
   requirePermission("manage_users"),
-  async (req: Request, res: Response) => {
+  async (_req: Request, res: Response) => {
     try {
       const users = UserRepository.findAll();
 
@@ -104,6 +117,35 @@ router.get(
     }
   },
 );
+
+// Get current user profile
+router.get("/me", async (_req: Request, res: Response) => {
+  try {
+    const user = UserRepository.findById(res.locals.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Remove password hash from response
+    const { password_hash, ...safeUser } = user;
+
+    res.json({
+      success: true,
+      message: "User retrieved successfully",
+      data: { user: safeUser },
+    });
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
 
 // Create new user (admin only)
 router.post(

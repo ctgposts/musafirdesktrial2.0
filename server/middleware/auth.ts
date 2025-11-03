@@ -20,7 +20,7 @@ export function generateToken(user: { id: string; username: string; role: string
     role: user.role,
   };
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN as string });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] });
 }
 
 export function verifyToken(token: string): JWTPayload | null {

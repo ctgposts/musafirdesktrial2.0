@@ -1,16 +1,6 @@
 import { Router, Request, Response } from "express";
-import {
-  TicketRepository,
-  TicketBatchRepository,
-  CountryRepository,
-  ActivityLogRepository,
-} from "../database/models";
-import {
-  authenticate,
-  requirePermission,
-  hasPermission,
-} from "../middleware/auth";
-import { z } from "zod";
+import { TicketRepository, ActivityLogRepository, CountryRepository, TicketBatchRepository } from "../database/models";
+import { authenticate, hasPermission } from "../middleware/auth";
 
 const router = Router();
 
@@ -56,7 +46,7 @@ router.get("/", async (req: Request, res: Response) => {
     if (!userCanViewBuyingPrice) {
       paginatedTickets.forEach((ticket) => {
         if (ticket.batch) {
-          delete ticket.batch.buying_price;
+          ticket.batch.buying_price = 0; // Set to 0 instead of undefined to maintain type consistency
         }
       });
     }
@@ -109,7 +99,7 @@ router.get("/country/:countryCode", async (req: Request, res: Response) => {
     if (!userCanViewBuyingPrice) {
       tickets.forEach((ticket) => {
         if (ticket.batch) {
-          delete ticket.batch.buying_price;
+          ticket.batch.buying_price = 0; // Set to 0 instead of undefined to maintain type consistency
         }
       });
     }
@@ -145,13 +135,9 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    // Remove buying price if user doesn't have permission
-    const userCanViewBuyingPrice = hasPermission(
-      req.user!.role,
-      "view_buying_price",
-    );
-    if (!userCanViewBuyingPrice && ticket.batch) {
-      delete ticket.batch.buying_price;
+    // Remove buying price for non-admin users
+    if (ticket.batch && !hasPermission(req.user!.role, "view_buying_price")) {
+      ticket.batch.buying_price = 0; // Set to 0 instead of undefined to maintain type consistency
     }
 
     res.json({
@@ -243,10 +229,9 @@ router.get("/dashboard/stats", async (req: Request, res: Response) => {
   try {
     const stats = TicketRepository.getDashboardStats();
 
-    // Remove profit info if user doesn't have permission
-    const userCanViewProfit = hasPermission(req.user!.role, "view_profit");
-    if (!userCanViewProfit) {
-      delete stats.estimatedProfit;
+    // Remove estimated profit for non-admin users
+    if (!hasPermission(req.user!.role, "view_profit")) {
+      stats.estimatedProfit = 0; // Set to 0 instead of deleting
     }
 
     res.json({
@@ -264,14 +249,14 @@ router.get("/dashboard/stats", async (req: Request, res: Response) => {
 });
 
 // Get countries with ticket counts
-router.get("/countries/stats", async (req: Request, res: Response) => {
+router.get("/countries/stats", async (_req: Request, res: Response) => {
   try {
     const countries = CountryRepository.findAll();
     const stats = TicketBatchRepository.getStatsByCountry();
 
-    const countriesWithStats = countries.map((country) => {
+    const countriesWithStats = countries.map((country: any) => {
       const countryStats = stats.find(
-        (stat) => stat.country_code === country.code,
+        (stat: any) => stat.country_code === country.code,
       );
       return {
         ...country,

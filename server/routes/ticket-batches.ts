@@ -1,12 +1,7 @@
 import { Router, Request, Response } from "express";
-import {
-  TicketBatchRepository,
-  TicketRepository,
-  ActivityLogRepository,
-} from "../database/models";
+import { TicketBatchRepository, TicketRepository, ActivityLogRepository } from "../database/models";
 import { authenticate, requirePermission } from "../middleware/auth";
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 
 const router = Router();
 
@@ -267,7 +262,6 @@ router.put(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
 
       const batch = TicketBatchRepository.findById(id);
       if (!batch) {
