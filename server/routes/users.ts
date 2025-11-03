@@ -123,7 +123,15 @@ router.post(
       }
 
       // Create the user
-      const user = UserRepository.create(userData);
+      const user = UserRepository.create({
+        username: userData.username,
+        password: userData.password,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role,
+        status: userData.status,
+      });
 
       // Log activity
       ActivityLogRepository.create({

@@ -229,7 +229,8 @@ export function seedDatabase() {
         name: "Admin User",
         email: "admin@bdticketpro.com",
         phone: "+8801234567890",
-        role: "admin",
+        role: "admin" as const,
+        status: "active" as const,
       },
       {
         id: uuidv4(),
@@ -238,7 +239,8 @@ export function seedDatabase() {
         name: "Manager User",
         email: "manager@bdticketpro.com",
         phone: "+8801234567891",
-        role: "manager",
+        role: "manager" as const,
+        status: "active" as const,
       },
       {
         id: uuidv4(),
@@ -247,7 +249,8 @@ export function seedDatabase() {
         name: "Staff User",
         email: "staff@bdticketpro.com",
         phone: "+8801234567892",
-        role: "staff",
+        role: "staff" as const,
+        status: "active" as const,
       },
     ];
 
@@ -261,7 +264,7 @@ export function seedDatabase() {
         user.email,
         user.phone,
         user.role,
-        "active", // Explicitly set status to active
+        user.status,
       );
     }
 
@@ -391,7 +394,7 @@ export function seedDatabase() {
       `);
 
       // Get first few tickets to create bookings for
-      const sampleTickets = db.prepare("SELECT id FROM tickets LIMIT 5").all();
+      const sampleTickets = db.prepare("SELECT id FROM tickets LIMIT 5").all() as { id: string }[];
 
       const sampleBookings = [
         {

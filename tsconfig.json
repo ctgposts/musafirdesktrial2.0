@@ -9,8 +9,8 @@
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
-    "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
     "esModuleInterop": true,
@@ -18,26 +18,29 @@
     "forceConsistentCasingInFileNames": true,
 
     /* Linting */
-    "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "noFallthroughCasesInSwitch": false,
-    "strictNullChecks": false,
-
-    /* Path mapping */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": true,
+    
+    /* Path aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./client/*"],
-      "@shared/*": ["./shared/*"]
-    }
+      "@/*": ["client/*"],
+      "@shared/*": ["shared/*"],
+      "@server/*": ["server/*"]
+    },
+    
+    /* Type root directories */
+    "typeRoots": ["./node_modules/@types", "./server/types"]
   },
   "include": [
-    "client/**/*",
-    "server/**/*",
-    "shared/**/*",
+    "client",
+    "server",
+    "shared",
     "vite.config.ts",
     "vite.config.server.ts"
-  ],
-  "exclude": ["node_modules", "dist"]
+  ]
 }

@@ -21,6 +21,10 @@ export interface LoginResponse {
   token: string;
 }
 
+export interface DemoResponse {
+  message: string;
+}
+
 // Ticket and Inventory Management
 export type TicketStatus = "available" | "booked" | "locked" | "sold";
 export type PaymentType = "full" | "partial";
@@ -82,6 +86,7 @@ export interface Booking {
   sellingPrice: number;
   paymentType: PaymentType;
   comments?: string;
+  status: "pending" | "confirmed" | "cancelled" | "expired";
   createdAt: string;
   createdBy: string;
   confirmedAt?: string;

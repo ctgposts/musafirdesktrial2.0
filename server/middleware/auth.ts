@@ -1,17 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { UserRepository, User } from "../database/models";
+import { UserRepository } from "../database/models";
 
-// Extend Request interface to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-    }
-  }
-}
-
-const JWT_SECRET = process.env.JWT_SECRET || "bd-ticketpro-secret-key-2024";
+// JWT configuration
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
 export interface JWTPayload {
@@ -20,14 +12,15 @@ export interface JWTPayload {
   role: string;
 }
 
-export function generateToken(user: User): string {
+// Generate JWT token
+export function generateToken(user: { id: string; username: string; role: string }): string {
   const payload: JWTPayload = {
     userId: user.id,
     username: user.username,
     role: user.role,
   };
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN as string });
 }
 
 export function verifyToken(token: string): JWTPayload | null {
@@ -71,7 +64,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
   }
 
   // Remove password hash from user object
-  delete user.password_hash;
+  delete (user as { password_hash?: string }).password_hash;
   req.user = user;
   next();
 }
