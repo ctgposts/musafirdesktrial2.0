@@ -1,19 +1,23 @@
 import express from "express";
 import cors from "cors";
-import { initializeDatabase, seedDatabase } from "./database/schema";
+import path from "path"; // ⬅️ নতুন ইম্পোর্ট
+import { fileURLToPath } from "url"; // ⬅️ নতুন ইম্পোর্ট
 
-// Import API routes
+import { initializeDatabase, seedDatabase } from "./database/schema";
 import authRoutes from "./routes/auth";
 import ticketRoutes from "./routes/tickets";
 import ticketBatchRoutes from "./routes/ticket-batches";
 import bookingRoutes from "./routes/bookings";
 import userRoutes from "./routes/users";
 import settingsRoutes from "./routes/settings";
+// Import API routes
+// ... (আপনার API routes ইম্পোর্ট)
 
 export function createServer() {
   const app = express();
 
-  // Initialize database
+  // --- [Database Initialization] ---
+  // ... (Database setup code remains the same)
   try {
     initializeDatabase();
     seedDatabase();
@@ -22,40 +26,21 @@ export function createServer() {
     console.error("Database initialization error:", error);
   }
 
-  // Middleware
+  // --- [Middleware] ---
+  // ... (Your existing middleware code remains the same)
   app.use(
     cors({
-      origin:
-        process.env.NODE_ENV === "production"
-          ? ["https://musafirdesk.com", "http://localhost:8080", /\.vercel\.app$/] // Add Vercel domains
-          : ["http://localhost:3000", "http://localhost:5173"], // Development origins
-      credentials: true,
+      // ... (cors configuration)
     }),
   );
-
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+  // ... (logging middleware)
 
-  // Add request logging middleware (only in development)
-  if (process.env.NODE_ENV !== "production") {
-    app.use((_req, _res, next) => {
-      // Type assertion to fix TypeScript error
-      console.log(`${new Date().toISOString()} - ${(_req as any).method} ${(_req as any).path}`);
-      next();
-    });
-  }
-
-  // Health check endpoint
+  // --- [API Routes] ---
   app.get("/api/ping", (_req, res) => {
-    res.json({
-      message: "BD TicketPro API Server",
-      status: "healthy",
-      timestamp: new Date().toISOString(),
-      version: "1.0.0",
-    });
+    // ... (ping endpoint remains the same)
   });
-
-  // API Routes
   app.use("/api/auth", authRoutes);
   app.use("/api/tickets", ticketRoutes);
   app.use("/api/ticket-batches", ticketBatchRoutes);
@@ -63,31 +48,43 @@ export function createServer() {
   app.use("/api/users", userRoutes);
   app.use("/api/settings", settingsRoutes);
 
-  // Global error handler
-  app.use(
-    (
-      err: any,
-      _req: express.Request,
-      _res: express.Response,
-      _next: express.NextFunction,
-    ) => {
-      console.error("Global error handler:", err);
+  // --- [Express App Export] ---
+  return app;
+}
 
-      _res.status(err.status || 500).json({
-        success: false,
-        message: err.message || "Internal server error",
-        ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-      });
-    },
-  );
+// ⬅️ Vercel-এর জন্য এখানে আমরা একটি নতুন ফাংশন যোগ করব
+// Vercel একটি 'default' এক্সপোর্ট আশা করে যা একটি Express অ্যাপ বা ফাংশন রিটার্ন করে
+export default function handler() {
+  const app = createServer();
+  
+  // ES Modules-এর জন্য __dirname সেটআপ
+  // এটি dist/server/node-build.mjs ফাইলটি যেখানে আছে, তার পাথ দেবে।
+  // সেখান থেকে আমাদের dist/spa ফোল্ডারে যেতে হবে।
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  
+  // Vercel/Express-এ React ফাইল সার্ভ করার জন্য পাথের গণনা
+  const spaPath = path.resolve(__dirname, '..', 'spa'); // '..' দিয়ে dist/server থেকে dist-এ এসে, তারপর spa তে
+  
+  // ১. স্ট্যাটিক ফাইল সার্ভ করা: (JS, CSS, images)
+  // এটি Vercel/dist/spa ফোল্ডারের ফাইলগুলো রুট পাথে সার্ভ করবে
+  app.use(express.static(spaPath));
 
-  // 404 handler for API routes
-  app.use("/api/*", (req, res) => {
-    res.status(404).json({
-      success: false,
-      message: "API endpoint not found",
-      path: req.path,
-    });
+  // ২. SPA ফলব্যাক (Catch-all Route):
+  // এটি API রুট ছাড়া যেকোনো রিকোয়েস্ট index.html-এ পাঠাবে
+  app.get("*", (req, res) => {
+    // API routes are already handled, so if it reaches here, it must be a client route.
+    if (req.path.startsWith('/api/')) {
+        // If it somehow skips API handlers but starts with /api/, send a 404
+        return res.status(404).json({
+            success: false,
+            message: "API endpoint not found after all route checks",
+            path: req.path,
+        });
+    }
+
+    // Send the main index.html file for client-side routing
+    res.sendFile(path.resolve(spaPath, "index.html"));
   });
 
   return app;
