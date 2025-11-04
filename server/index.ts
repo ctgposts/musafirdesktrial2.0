@@ -38,7 +38,7 @@ export function createServer() {
   // ... (logging middleware)
 
   // --- [API Routes] ---
-  app.get("/api/ping", (_req, res) => {
+  app.get("/api/ping", (req, _res) => {
     // ... (ping endpoint remains the same)
   });
   app.use("/api/auth", authRoutes);
