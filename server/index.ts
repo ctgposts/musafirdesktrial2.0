@@ -28,7 +28,7 @@ export function createServer() {
 
   // --- [Middleware] ---
   // ... (Your existing middleware code remains the same)
-  //--app.use(--
+  app.use(
     cors({
       // ... (cors configuration)
     }),
